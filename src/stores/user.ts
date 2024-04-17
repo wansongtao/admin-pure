@@ -23,24 +23,16 @@ export const useUserStore = defineStore('user', () => {
   }
 
   async function login(data: ILoginParams) {
-    return new Promise<void>((resolve, reject) => {
-      setLogin(data).then((res) => {
-        if (res.result) {
-          setToken(res.result.data)
-          resolve()
-        } else {
-          reject(res.error)
-        }
-      })
-    })
+    const [err, result] = await setLogin(data)
+    if (result) {
+      setToken(result.data)
+    } else {
+      throw err
+    }
   }
-  function logout() {
-    return new Promise<void>((resolve) => {
-      setLogout().then(() => {
-        removeToken()
-        resolve()
-      })
-    })
+  async function logout() {
+    await setLogout()
+    removeToken()
   }
 
   const userInfo = ref<IUserInfo>({
@@ -49,18 +41,11 @@ export const useUserStore = defineStore('user', () => {
     permissions: [],
     roles: []
   })
-  function getUserInfoAction() {
-    return new Promise<IUserInfo>((resolve, reject) => {
-      getUserInfo().then((res) => {
-        const { result, error } = res
-        if (result) {
-          userInfo.value = result.data
-          resolve(result.data)
-        } else {
-          reject(error)
-        }
-      })
-    })
+  async function getUserInfoAction() {
+    const [, result] = await getUserInfo()
+    if (result) {
+      userInfo.value = result.data
+    }
   }
 
   return {
